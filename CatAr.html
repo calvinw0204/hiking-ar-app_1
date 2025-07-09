@@ -12,7 +12,7 @@
         padding: 0;
         height: 100%;
         overflow: hidden;
-        background: black;
+        background: transparent; /* ✅ 修正背景 */
       }
     </style>
   </head>
@@ -23,7 +23,7 @@
       device-orientation-permission-ui="enabled: true"
       embedded
       color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
+      renderer="colorManagement: true, physicallyCorrectLights: true, alpha: true" <!-- ✅ 加 alpha -->
     >
       <a-assets>
         <a-asset-item id="catModel" src="cat.glb"></a-asset-item>
