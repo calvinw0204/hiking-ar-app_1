@@ -7,15 +7,24 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.css" />
     <style>
-      body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+      body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+        background: black;
+      }
     </style>
   </head>
   <body>
-    <a-scene mindar-image="imageTargetSrc: nav-marker.mind; autoStart: true; uiLoading: no;" 
-             vr-mode-ui="enabled: false" 
-             device-orientation-permission-ui="enabled: true" 
-             embedded>
-      
+    <a-scene
+      mindar-image="imageTargetSrc: nav-marker.mind; autoStart: true; uiLoading: yes"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: true"
+      embedded
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+    >
       <a-assets>
         <a-asset-item id="arrowModel" src="arrow.glb"></a-asset-item>
       </a-assets>
@@ -23,9 +32,13 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-gltf-model src="#arrowModel" position="0 0 0" scale="0.3 0.3 0.3"></a-gltf-model>
+        <a-gltf-model
+          src="#arrowModel"
+          position="0 -0.15 0"
+          rotation="0 90 0"
+          scale="0.15 0.15 0.15"
+        ></a-gltf-model>
       </a-entity>
-
     </a-scene>
   </body>
 </html>
