@@ -7,22 +7,19 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.css" />
     <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        overflow: hidden;
-        background: transparent; /* ✅ 透明背景 */
+      html, body { 
+        margin: 0; padding: 0; height: 100%; overflow: hidden; 
+        background: transparent; /* 透明背景，顯示鏡頭 */
       }
     </style>
   </head>
   <body>
     <a-scene 
-      mindar-image="imageTargetSrc: nav-marker.mind; autoStart: true; uiLoading: yes; uiError: yes"
+      mindar-image="imageTargetSrc: nav-marker.mind; autoStart: true; uiLoading: no;" 
       vr-mode-ui="enabled: false" 
       device-orientation-permission-ui="enabled: true" 
       embedded
-      renderer="colorManagement: true, physicallyCorrectLights: true, alpha: true"  <!-- ✅ 重點修正 -->
+      renderer="colorManagement: true, physicallyCorrectLights: true, alpha: true"
     >
       <a-assets>
         <a-asset-item id="arrowModel" src="arrow.glb"></a-asset-item>
@@ -35,8 +32,8 @@
           src="#arrowModel" 
           position="0 -0.15 0" 
           scale="0.15 0.15 0.15" 
-          rotation="0 90 0">
-        </a-gltf-model>
+          rotation="0 90 0"
+        ></a-gltf-model>
       </a-entity>
     </a-scene>
   </body>
