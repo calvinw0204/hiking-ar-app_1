@@ -42,6 +42,28 @@
       display: flex;
     }
 
+    #home {
+      display: flex; /* 確保主頁是flex容器 */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #model-container {
+      width: 80%; /* 或你想要的大小 */
+      height: 60%; /* 或你想要的大小 */
+      margin-top: 20px;
+      background-color: #e0e0e0; /* 可選：背景色以便於觀察容器 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden; /* 確保模型不會溢出容器 */
+    }
+
+    canvas {
+      display: block; /* 移除canvas下面的空白 */
+    }
+
     .bottom-nav {
       position: absolute;
       bottom: 0;
@@ -50,6 +72,7 @@
       display: flex;
       background-color: #222;
       padding-bottom: env(safe-area-inset-bottom); /* iPhone 底部安全區 */
+      z-index: 100; /* 確保導航欄在最上層 */
     }
 
     .nav-button {
@@ -72,7 +95,7 @@
     <div id="home" class="screen active">
       <h1>🐾 歡迎來到黑貓行山</h1>
       <p>呢度係主頁，可以顯示獎勵或解鎖裝備畫面。</p>
-    </div>
+      <div id="model-container"></div> </div>
 
     <div class="bottom-nav">
       <button class="nav-button" onclick="goTo('home')">主頁</button>
@@ -81,7 +104,96 @@
     </div>
   </div>
 
-  <script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    let scene, camera, renderer, model, mixer;
+    const modelContainer = document.getElementById('model-container');
+
+    function init() {
+      // 場景
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f0f0); // 背景顏色與頁面背景匹配
+
+      // 攝像機
+      camera = new THREE.PerspectiveCamera(75, modelContainer.clientWidth / modelContainer.clientHeight, 0.1, 1000);
+      camera.position.set(0, 1.5, 3); // 調整攝像機位置以更好地看到模型
+
+      // 渲染器
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(modelContainer.clientWidth, modelContainer.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      modelContainer.appendChild(renderer.domElement);
+
+      // 環境光
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // 柔和的白光
+      scene.add(ambientLight);
+
+      // 方向光
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      directionalLight.position.set(5, 10, 7.5);
+      directionalLight.castShadow = true;
+      scene.add(directionalLight);
+
+      // GLTF 模型加載器
+      const loader = new GLTFLoader();
+      loader.load(
+        'Animation_Casual_Walk_withSkin.glb',
+        function (gltf) {
+          model = gltf.scene;
+          model.position.set(0, 0, 0); // 調整模型位置
+          model.scale.set(1.5, 1.5, 1.5); // 調整模型大小，根據需要調整
+          scene.add(model);
+
+          // 設置動畫
+          if (gltf.animations && gltf.animations.length) {
+            mixer = new THREE.AnimationMixer(model);
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+          }
+
+          console.log('模型加載成功！');
+        },
+        undefined,
+        function (error) {
+          console.error('加載GLTF模型時出錯：', error);
+        }
+      );
+
+      // 窗口大小調整事件監聽
+      window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+      camera.aspect = modelContainer.clientWidth / modelContainer.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(modelContainer.clientWidth, modelContainer.clientHeight);
+    }
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (mixer) {
+        mixer.update(clock.getDelta());
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // 頁面加載後初始化3D場景
+    init();
+    animate();
+
     function goTo(sectionId) {
       document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
