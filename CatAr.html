@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>黑貓 AR 留言輸入 Demo</title>
+    <title>黑貓 AR 彈幕留言 Demo</title>
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.css" />
@@ -27,69 +27,96 @@
     </style>
   </head>
   <body>
-    <!-- AR 場景 -->
     <a-scene mindar-image="imageTargetSrc: cat-marker.mind; autoStart: true;" 
              vr-mode-ui="enabled: false"
              device-orientation-permission-ui="enabled: true"
              embedded>
-             
       <a-assets>
         <a-asset-item id="catModel" src="cat.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Checkpoint 0 -->
       <a-entity mindar-image-target="targetIndex: 0" id="checkpoint-0">
-        <!-- 黑貓轉向朝前 -->
         <a-gltf-model 
           src="#catModel" 
-          position="0 0 0" 
-          scale="0.5 0.5 0.5" 
-          rotation="0 0 0">
+          position="0 -0.18 0.44" 
+          scale="0.35 0.35 0.35" 
+          rotation="87 172 174">
         </a-gltf-model>
 
-        <!-- 留言文字：調整喺黑貓頭頂 -->
-        <a-text 
-          value="" 
-          id="message-0" 
-          position="0 2.1 0.2"  <!-- Y = 高度，Z = 微微向前拉出 -->
-          align="center" 
-          color="black" 
-          width="5"
-          scale="1.5 1.5 1.5">
-        </a-text>
+        <!-- 彈幕留言 container -->
+        <a-entity id="barrage-container" position="0 0.6 0.45" rotation="-30 0 0">
+          <!-- 動態彈幕文字會放呢度 -->
+        </a-entity>
       </a-entity>
-
     </a-scene>
 
     <!-- 留言輸入區 -->
     <div id="input-container">
       <input type="text" id="userMessage" placeholder="輸入留言..." />
-      <button id="saveBtn">儲存留言</button>
+      <button id="saveBtn">新增留言</button>
     </div>
 
-    <!-- Script -->
     <script>
-      const checkpointId = 0; // targetIndex
-      const messageKey = `message-${checkpointId}`;
-      const messageText = document.querySelector("#message-0");
+      const barrageContainer = document.getElementById("barrage-container");
       const input = document.getElementById("userMessage");
       const saveBtn = document.getElementById("saveBtn");
 
-      // 載入留言
-      window.addEventListener("DOMContentLoaded", () => {
-        const savedMsg = localStorage.getItem(messageKey) || "暫時未有留言";
-        messageText.setAttribute("value", savedMsg);
-        input.value = savedMsg;
-      });
+      // 留言陣列（預設幾條留言）
+      let messages = JSON.parse(localStorage.getItem("barrageMessages") || '["你好呀！","黑貓陪住你~","小心行山！"]');
 
-      // 儲存留言
+      let currentIndex = 0;
+
+      // 顯示一條彈幕，動畫由右向左
+      function showBarrageMessage(msg) {
+        // 清除上次文字
+        barrageContainer.innerHTML = "";
+
+        // 建立黑底板
+        const bg = document.createElement("a-plane");
+        bg.setAttribute("color", "black");
+        bg.setAttribute("opacity", "0.7");
+        bg.setAttribute("height", "0.3");
+        bg.setAttribute("width", "3.5");
+        bg.setAttribute("position", "0 0 0");
+
+        // 建立文字
+        const text = document.createElement("a-text");
+        text.setAttribute("value", msg);
+        text.setAttribute("color", "white");
+        text.setAttribute("align", "center");
+        text.setAttribute("width", "3");
+        text.setAttribute("position", "0 0 0.01"); // 文字稍前面
+        text.setAttribute("wrap-count", "40");
+
+        // 把文字放入黑底
+        bg.appendChild(text);
+
+        barrageContainer.appendChild(bg);
+
+        // 動畫：plane 由右(3.5)移到左(-3.5)
+        bg.setAttribute("position", "3.5 0 0");
+        bg.setAttribute("animation", "property: position; from: 3.5 0 0; to: -3.5 0 0; dur: 8000; easing: linear");
+
+        // 8秒後顯示下一條
+        setTimeout(() => {
+          currentIndex = (currentIndex + 1) % messages.length;
+          showBarrageMessage(messages[currentIndex]);
+        }, 8000);
+      }
+
+      // 開始循環
+      showBarrageMessage(messages[currentIndex]);
+
+      // 新增留言
       saveBtn.addEventListener("click", () => {
         const msg = input.value.trim();
         if (msg !== "") {
-          localStorage.setItem(messageKey, msg);
-          messageText.setAttribute("value", msg);
+          messages.push(msg);
+          localStorage.setItem("barrageMessages", JSON.stringify(messages));
+          input.value = "";
+          // 如果啱啱係循環顯示，可以考慮即刻播新增留言（或者留待下一輪）
         }
       });
     </script>
