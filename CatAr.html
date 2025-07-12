@@ -2,35 +2,80 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>黑貓 AR 模式</title>
+    <title>黑貓 AR 留言輸入 Demo</title>
     <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.css" />
     <style>
       body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+      #input-container {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+        z-index: 10;
+      }
+      #userMessage {
+        width: 60%;
+        padding: 8px;
+        font-size: 16px;
+      }
+      #saveBtn {
+        padding: 8px 16px;
+        font-size: 16px;
+      }
     </style>
   </head>
   <body>
-    <a-scene mindar-image="imageTargetSrc: cat-marker.mind; autoStart: true; uiLoading: no;" 
-             vr-mode-ui="enabled: false" 
-             device-orientation-permission-ui="enabled: true" 
+    <!-- AR 場景 -->
+    <a-scene mindar-image="imageTargetSrc: cat-marker.mind; autoStart: true;" 
+             vr-mode-ui="enabled: false"
+             device-orientation-permission-ui="enabled: true"
              embedded>
-      
+
       <a-assets>
         <a-asset-item id="catModel" src="cat.glb"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-     <a-entity mindar-image-target="targetIndex: 0">
-  <a-gltf-model 
-    src="#catModel" 
-    position="-0.17 0.47 -0.01" 
-    rotation="188 180 181" 
-    scale="0.06 0.06 0.06">
-  </a-gltf-model>
-</a-entity>
+      <!-- Checkpoint 0 -->
+      <a-entity mindar-image-target="targetIndex: 0" id="checkpoint-0">
+        <a-gltf-model src="#catModel" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 180 0"></a-gltf-model>
+        <a-text value="" id="message-0" position="0 1.5 0" align="center" color="black" width="4"></a-text>
+      </a-entity>
 
     </a-scene>
+
+    <!-- 留言輸入區 -->
+    <div id="input-container">
+      <input type="text" id="userMessage" placeholder="輸入留言..." />
+      <button id="saveBtn">儲存留言</button>
+    </div>
+
+    <!-- Script -->
+    <script>
+      const checkpointId = 0; // targetIndex
+      const messageKey = `message-${checkpointId}`;
+      const messageText = document.querySelector("#message-0");
+      const input = document.getElementById("userMessage");
+      const saveBtn = document.getElementById("saveBtn");
+
+      // 載入留言
+      window.addEventListener("DOMContentLoaded", () => {
+        const savedMsg = localStorage.getItem(messageKey) || "暫時未有留言";
+        messageText.setAttribute("value", savedMsg);
+        input.value = localStorage.getItem(messageKey) || "";
+      });
+
+      // 儲存留言
+      saveBtn.addEventListener("click", () => {
+        const msg = input.value.trim();
+        if (msg !== "") {
+          localStorage.setItem(messageKey, msg);
+          messageText.setAttribute("value", msg);
+        }
+      });
+    </script>
   </body>
 </html>
