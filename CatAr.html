@@ -1,124 +1,128 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>黑貓 AR 彈幕留言 Demo</title>
-    <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.css" />
-    <style>
-      body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-      #input-container {
-        position: absolute;
-        bottom: 10px;
-        width: 100%;
-        text-align: center;
-        z-index: 10;
-      }
-      #userMessage {
-        width: 60%;
-        padding: 8px;
-        font-size: 16px;
-      }
-      #saveBtn {
-        padding: 8px 16px;
-        font-size: 16px;
-      }
-    </style>
-  </head>
-  <body>
-    <a-scene mindar-image="imageTargetSrc: cat-marker.mind; autoStart: true;" 
-             vr-mode-ui="enabled: false"
-             device-orientation-permission-ui="enabled: true"
-             embedded>
-      <a-assets>
-        <a-asset-item id="catModel" src="cat.glb"></a-asset-item>
-      </a-assets>
+<head>
+  <meta charset="UTF-8" />
+  <title>黑貓 AR 彈幕留言 Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.2/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.css" />
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    #input-container {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+    }
+    #userMessage {
+      width: 60%;
+      padding: 8px;
+      font-size: 16px;
+    }
+    #saveBtn {
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <a-scene mindar-image="imageTargetSrc: cat-marker.mind; autoStart: true;" 
+           vr-mode-ui="enabled: false"
+           device-orientation-permission-ui="enabled: true"
+           embedded>
+    <a-assets>
+      <a-asset-item id="catModel" src="cat.glb"></a-asset-item>
+    </a-assets>
 
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <a-entity mindar-image-target="targetIndex: 0" id="checkpoint-0">
-        <a-gltf-model 
-          src="#catModel" 
-          position="0 -0.18 0.44" 
-          scale="0.35 0.35 0.35" 
-          rotation="87 172 174">
-        </a-gltf-model>
+    <a-entity mindar-image-target="targetIndex: 0" id="checkpoint-0">
+      <!-- 黑貓 -->
+      <a-gltf-model 
+        src="#catModel" 
+        position="0 0 0.1" 
+        scale="0.75 0.75 0.75" 
+        rotation="0 0 0">
+      </a-gltf-model>
 
-        <!-- 彈幕留言 container -->
-        <a-entity id="barrage-container" position="0 0.6 0.45" rotation="-30 0 0">
-          <!-- 動態彈幕文字會放呢度 -->
-        </a-entity>
-      </a-entity>
-    </a-scene>
+      <!-- 彈幕留言 container -->
+      <a-entity id="barrage-container" position="0 1.1 0.1" rotation="0 0 0"></a-entity>
+    </a-entity>
+  </a-scene>
 
-    <!-- 留言輸入區 -->
-    <div id="input-container">
-      <input type="text" id="userMessage" placeholder="輸入留言..." />
-      <button id="saveBtn">新增留言</button>
-    </div>
+  <!-- 留言輸入區 -->
+  <div id="input-container">
+    <input type="text" id="userMessage" placeholder="輸入留言..." disabled />
+    <button id="saveBtn" disabled>新增留言</button>
+  </div>
 
-    <script>
-      const barrageContainer = document.getElementById("barrage-container");
-      const input = document.getElementById("userMessage");
-      const saveBtn = document.getElementById("saveBtn");
+  <script>
+    const barrageContainer = document.getElementById("barrage-container");
+    const input = document.getElementById("userMessage");
+    const saveBtn = document.getElementById("saveBtn");
+    const marker = document.querySelector("#checkpoint-0");
 
-      // 留言陣列（預設幾條留言）
-      let messages = JSON.parse(localStorage.getItem("barrageMessages") || '["你好呀！","黑貓陪住你~","小心行山！"]');
+    // 留言列表
+    let messages = JSON.parse(localStorage.getItem("barrageMessages") || '["你好呀！", "黑貓陪住你~", "小心行山！"]');
+    let currentIndex = 0;
 
-      let currentIndex = 0;
+    function showBarrageMessage(msg) {
+      const bg = document.createElement("a-plane");
+      bg.setAttribute("color", "black");
+      bg.setAttribute("opacity", "0.7");
+      bg.setAttribute("height", "0.3");
+      bg.setAttribute("width", "3.5");
 
-      // 顯示一條彈幕，動畫由右向左
-      function showBarrageMessage(msg) {
-        // 清除上次文字
-        barrageContainer.innerHTML = "";
+      const randomY = (Math.random() - 0.5) * 0.8;
+      bg.setAttribute("position", `3.5 ${randomY} 0`);
 
-        // 建立黑底板
-        const bg = document.createElement("a-plane");
-        bg.setAttribute("color", "black");
-        bg.setAttribute("opacity", "0.7");
-        bg.setAttribute("height", "0.3");
-        bg.setAttribute("width", "3.5");
-        bg.setAttribute("position", "0 0 0");
+      const text = document.createElement("a-text");
+      text.setAttribute("value", msg);
+      text.setAttribute("color", "white");
+      text.setAttribute("align", "center");
+      text.setAttribute("width", "3");
+      text.setAttribute("position", "0 0 0.01");
+      text.setAttribute("wrap-count", "40");
 
-        // 建立文字
-        const text = document.createElement("a-text");
-        text.setAttribute("value", msg);
-        text.setAttribute("color", "white");
-        text.setAttribute("align", "center");
-        text.setAttribute("width", "3");
-        text.setAttribute("position", "0 0 0.01"); // 文字稍前面
-        text.setAttribute("wrap-count", "40");
+      bg.appendChild(text);
+      barrageContainer.appendChild(bg);
 
-        // 把文字放入黑底
-        bg.appendChild(text);
+      bg.setAttribute("animation", `property: position; from: 3.5 ${randomY} 0; to: -3.5 ${randomY} 0; dur: 8000; easing: linear`);
 
-        barrageContainer.appendChild(bg);
+      setTimeout(() => {
+        barrageContainer.removeChild(bg);
+      }, 8500);
+    }
 
-        // 動畫：plane 由右(3.5)移到左(-3.5)
-        bg.setAttribute("position", "3.5 0 0");
-        bg.setAttribute("animation", "property: position; from: 3.5 0 0; to: -3.5 0 0; dur: 8000; easing: linear");
-
-        // 8秒後顯示下一條
-        setTimeout(() => {
-          currentIndex = (currentIndex + 1) % messages.length;
-          showBarrageMessage(messages[currentIndex]);
-        }, 8000);
-      }
-
-      // 開始循環
+    setInterval(() => {
       showBarrageMessage(messages[currentIndex]);
+      currentIndex = (currentIndex + 1) % messages.length;
+    }, 3000);
 
-      // 新增留言
-      saveBtn.addEventListener("click", () => {
-        const msg = input.value.trim();
-        if (msg !== "") {
-          messages.push(msg);
-          localStorage.setItem("barrageMessages", JSON.stringify(messages));
-          input.value = "";
-          // 如果啱啱係循環顯示，可以考慮即刻播新增留言（或者留待下一輪）
-        }
-      });
-    </script>
-  </body>
+    saveBtn.addEventListener("click", () => {
+      const msg = input.value.trim();
+      if (msg !== "") {
+        messages.push(msg);
+        localStorage.setItem("barrageMessages", JSON.stringify(messages));
+        input.value = "";
+      }
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") saveBtn.click();
+    });
+
+    // 🔒 當 Marker 未出現，disable 輸入框
+    marker.addEventListener("targetFound", () => {
+      input.disabled = false;
+      saveBtn.disabled = false;
+    });
+
+    marker.addEventListener("targetLost", () => {
+      input.disabled = true;
+      saveBtn.disabled = true;
+    });
+  </script>
+</body>
 </html>
