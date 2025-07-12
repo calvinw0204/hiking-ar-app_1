@@ -32,7 +32,7 @@
              vr-mode-ui="enabled: false"
              device-orientation-permission-ui="enabled: true"
              embedded>
-
+             
       <a-assets>
         <a-asset-item id="catModel" src="cat.glb"></a-asset-item>
       </a-assets>
@@ -41,8 +41,24 @@
 
       <!-- Checkpoint 0 -->
       <a-entity mindar-image-target="targetIndex: 0" id="checkpoint-0">
-        <a-gltf-model src="#catModel" position="0 0 0" scale="0.5 0.5 0.5" rotation="0 180 0"></a-gltf-model>
-        <a-text value="" id="message-0" position="0 1.5 0" align="center" color="black" width="4"></a-text>
+        <!-- 黑貓轉向朝前 -->
+        <a-gltf-model 
+          src="#catModel" 
+          position="0 0 0" 
+          scale="0.5 0.5 0.5" 
+          rotation="0 0 0">
+        </a-gltf-model>
+
+        <!-- 留言文字：調整喺黑貓頭頂 -->
+        <a-text 
+          value="" 
+          id="message-0" 
+          position="0 2.1 0.2"  <!-- Y = 高度，Z = 微微向前拉出 -->
+          align="center" 
+          color="black" 
+          width="5"
+          scale="1.5 1.5 1.5">
+        </a-text>
       </a-entity>
 
     </a-scene>
@@ -65,7 +81,7 @@
       window.addEventListener("DOMContentLoaded", () => {
         const savedMsg = localStorage.getItem(messageKey) || "暫時未有留言";
         messageText.setAttribute("value", savedMsg);
-        input.value = localStorage.getItem(messageKey) || "";
+        input.value = savedMsg;
       });
 
       // 儲存留言
